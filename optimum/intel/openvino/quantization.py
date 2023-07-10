@@ -17,6 +17,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple, Union
+import shutil
 
 import nncf
 import openvino
@@ -25,6 +26,7 @@ import transformers
 from datasets import Dataset, load_dataset
 from nncf import NNCFConfig
 from nncf.torch import create_compressed_model, register_default_init_args
+from nncf.quantization import weights_compression
 from nncf.torch.dynamic_graph.io_handling import wrap_nncf_model_inputs_with_objwalk
 from nncf.torch.initialization import PTInitializingDataLoader
 from openvino._offline_transformations import compress_quantize_weights_transformation
@@ -32,8 +34,10 @@ from openvino.runtime import Core, Tensor
 from torch.utils.data import DataLoader, RandomSampler, TensorDataset
 from transformers import DataCollator, PreTrainedModel, default_data_collator
 
+
 from optimum.exporters import TasksManager
-from optimum.exporters.onnx import export
+from optimum.exporters.onnx.base import ConfigBehavior
+from optimum.exporters.onnx import export, get_encoder_decoder_models_for_export, export_models
 from optimum.quantization_base import OptimumQuantizer
 
 from ..utils.constant import _TASK_ALIASES
@@ -45,8 +49,10 @@ from .utils import (
     MIN_ONNX_QDQ_OPSET,
     ONNX_WEIGHTS_NAME,
     OV_XML_FILE_NAME,
+    ONNX_ENCODER_NAME,
+    ONNX_DECODER_NAME,
+    ONNX_DECODER_WITH_PAST_NAME
 )
-
 
 core = Core()
 logger = logging.getLogger(__name__)
@@ -361,10 +367,14 @@ class OVQuantizer(OptimumQuantizer):
         quantization_config.add_input_info(model_inputs)
         nncf_config = NNCFConfig.from_dict(quantization_config.__dict__)
         nncf_config = register_default_init_args(nncf_config, calibration_dataloader)
-        controller, compressed_model = create_compressed_model(
-            self.model, nncf_config, wrap_inputs_fn=wrap_nncf_model_inputs_with_objwalk
-        )
-        compressed_model = controller.strip(do_copy=False)
+        
+        if weights_only:
+            compressed_model = weights_compression(self.model, True)
+        else:
+            controller, compressed_model = create_compressed_model(
+                self.model, nncf_config, wrap_inputs_fn=wrap_nncf_model_inputs_with_objwalk
+            )
+            compressed_model = controller.strip(do_copy=False)
 
         task = self.task
         model = self.model
@@ -380,23 +390,54 @@ class OVQuantizer(OptimumQuantizer):
         # Export the model to the ONNX format
         opset = min(onnx_config.DEFAULT_ONNX_OPSET, MAX_ONNX_OPSET)
         opset = max(opset, MIN_ONNX_QDQ_OPSET)
-        export(
-            model=compressed_model,
-            config=onnx_config,
-            opset=opset,
-            output=onnx_path,
-        )
 
-        # Load and save the compressed model
-        model = core.read_model(onnx_path)
-        self._save_pretrained(model, output_path)
-        quantization_config.save_pretrained(save_directory)
-        if not quantization_config.save_onnx_model:
-            os.remove(onnx_path)
-            try:
-                os.remove(f"{onnx_path}_data")
-            except FileNotFoundError:
-                pass
+        if task == "text2text-generation":
+            encoder_file_name = os.path.join("encoder", ONNX_ENCODER_NAME)
+            decoder_file_name = os.path.join("decoder", ONNX_DECODER_NAME)
+            models_and_onnx_configs = get_encoder_decoder_models_for_export(self.model, onnx_config)
+            output_names = [encoder_file_name, decoder_file_name]
+            # TODO: check model with past key values
+            # decoder_with_past_file_name = os.path.join("decoder_with_past", ONNX_DECODER_WITH_PAST_NAME)
+            # if model.config.decoder.use_cache is True:
+            #     del models_and_onnx_configs['decoder_model']
+            #     output_names[-1] = decoder_with_past_file_name
+
+            export_models(
+                models_and_onnx_configs=models_and_onnx_configs,
+                opset=onnx_config.DEFAULT_ONNX_OPSET,
+                output_dir=onnx_path,
+                output_names=output_names,
+            )
+
+            # Load and save the compressed model
+            for name in output_names:
+                model = core.read_model(f"{onnx_path}/{name}")
+                model_type = os.path.basename(name).split('.')[0]
+                file_name = save_directory.joinpath(f"openvino_{model_type}.xml")
+                self._save_pretrained(model, file_name)
+            quantization_config.save_pretrained(save_directory)
+
+            if not quantization_config.save_onnx_model:
+                shutil.rmtree(onnx_path)
+        else:
+            export(
+                model=compressed_model,
+                config=onnx_config,
+                opset=opset,
+                output=onnx_path,
+            )
+
+            # Load and save the compressed model
+            model = core.read_model(onnx_path)
+            self._save_pretrained(model, output_path)
+            quantization_config.save_pretrained(save_directory)
+            if not quantization_config.save_onnx_model:
+                os.remove(onnx_path)
+                try:
+                    os.remove(f"{onnx_path}_data")
+                except FileNotFoundError:
+                    pass
+
 
     @staticmethod
     def _save_pretrained(model: openvino.runtime.Model, output_path: str):
@@ -412,9 +453,6 @@ class OVQuantizer(OptimumQuantizer):
                 )
 
         self.task = _TASK_ALIASES.get(self.task, self.task)
-
-        if self.task == "text2text-generation":
-            raise ValueError("Seq2Seq models are currently not supported for post-training static quantization.")
 
     def get_calibration_dataset(
         self,
