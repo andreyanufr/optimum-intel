@@ -15,9 +15,9 @@
 import inspect
 import logging
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple, Union
-import shutil
 
 import nncf
 import openvino
@@ -25,8 +25,8 @@ import torch
 import transformers
 from datasets import Dataset, load_dataset
 from nncf import NNCFConfig
-from nncf.torch import create_compressed_model, register_default_init_args
 from nncf.quantization import weights_compression
+from nncf.torch import create_compressed_model, register_default_init_args
 from nncf.torch.dynamic_graph.io_handling import wrap_nncf_model_inputs_with_objwalk
 from nncf.torch.initialization import PTInitializingDataLoader
 from openvino._offline_transformations import compress_quantize_weights_transformation
@@ -34,10 +34,8 @@ from openvino.runtime import Core, Tensor
 from torch.utils.data import DataLoader, RandomSampler, TensorDataset
 from transformers import DataCollator, PreTrainedModel, default_data_collator
 
-
 from optimum.exporters import TasksManager
-from optimum.exporters.onnx.base import ConfigBehavior
-from optimum.exporters.onnx import export, get_encoder_decoder_models_for_export, export_models
+from optimum.exporters.onnx import export, export_models, get_encoder_decoder_models_for_export
 from optimum.quantization_base import OptimumQuantizer
 
 from ..utils.constant import _TASK_ALIASES
@@ -47,12 +45,12 @@ from .modeling_decoder import OVBaseDecoderModel
 from .utils import (
     MAX_ONNX_OPSET,
     MIN_ONNX_QDQ_OPSET,
+    ONNX_DECODER_NAME,
+    ONNX_ENCODER_NAME,
     ONNX_WEIGHTS_NAME,
     OV_XML_FILE_NAME,
-    ONNX_ENCODER_NAME,
-    ONNX_DECODER_NAME,
-    ONNX_DECODER_WITH_PAST_NAME
 )
+
 
 core = Core()
 logger = logging.getLogger(__name__)
@@ -367,7 +365,7 @@ class OVQuantizer(OptimumQuantizer):
         quantization_config.add_input_info(model_inputs)
         nncf_config = NNCFConfig.from_dict(quantization_config.__dict__)
         nncf_config = register_default_init_args(nncf_config, calibration_dataloader)
-        
+
         if weights_only:
             compressed_model = weights_compression(self.model, True)
         else:
@@ -412,7 +410,7 @@ class OVQuantizer(OptimumQuantizer):
             # Load and save the compressed model
             for name in output_names:
                 model = core.read_model(f"{onnx_path}/{name}")
-                model_type = os.path.basename(name).split('.')[0]
+                model_type = os.path.basename(name).split(".")[0]
                 file_name = save_directory.joinpath(f"openvino_{model_type}.xml")
                 self._save_pretrained(model, file_name)
             quantization_config.save_pretrained(save_directory)
@@ -437,7 +435,6 @@ class OVQuantizer(OptimumQuantizer):
                     os.remove(f"{onnx_path}_data")
                 except FileNotFoundError:
                     pass
-
 
     @staticmethod
     def _save_pretrained(model: openvino.runtime.Model, output_path: str):
