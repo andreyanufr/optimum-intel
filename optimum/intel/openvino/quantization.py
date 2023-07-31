@@ -25,7 +25,7 @@ import torch
 import transformers
 from datasets import Dataset, load_dataset
 from nncf import NNCFConfig
-from nncf.quantization import weights_compression
+from nncf.quantization import compress_weights
 from nncf.torch import create_compressed_model, register_default_init_args
 from nncf.torch.dynamic_graph.io_handling import wrap_nncf_model_inputs_with_objwalk
 from nncf.torch.initialization import PTInitializingDataLoader
@@ -367,7 +367,7 @@ class OVQuantizer(OptimumQuantizer):
         nncf_config = register_default_init_args(nncf_config, calibration_dataloader)
 
         if weights_only:
-            compressed_model = weights_compression(self.model, True)
+            compressed_model = compress_weights(self.model, True)
         else:
             controller, compressed_model = create_compressed_model(
                 self.model, nncf_config, wrap_inputs_fn=wrap_nncf_model_inputs_with_objwalk
