@@ -46,6 +46,7 @@ from .utils import (
     MAX_ONNX_OPSET,
     MIN_ONNX_QDQ_OPSET,
     ONNX_DECODER_NAME,
+    ONNX_DECODER_WITH_PAST_NAME,
     ONNX_ENCODER_NAME,
     ONNX_WEIGHTS_NAME,
     OV_XML_FILE_NAME,
@@ -392,8 +393,10 @@ class OVQuantizer(OptimumQuantizer):
         if task == "text2text-generation":
             encoder_file_name = os.path.join("encoder", ONNX_ENCODER_NAME)
             decoder_file_name = os.path.join("decoder", ONNX_DECODER_NAME)
+            decoder_with_past_file_name = os.path.join("decoder_with_past", ONNX_DECODER_WITH_PAST_NAME)
+            onnx_config.use_past = True
             models_and_onnx_configs = get_encoder_decoder_models_for_export(self.model, onnx_config)
-            output_names = [encoder_file_name, decoder_file_name]
+            output_names = [encoder_file_name, decoder_file_name, decoder_with_past_file_name]
             # TODO: check model with past key values
             # decoder_with_past_file_name = os.path.join("decoder_with_past", ONNX_DECODER_WITH_PAST_NAME)
             # if model.config.decoder.use_cache is True:
@@ -402,7 +405,7 @@ class OVQuantizer(OptimumQuantizer):
 
             export_models(
                 models_and_onnx_configs=models_and_onnx_configs,
-                opset=onnx_config.DEFAULT_ONNX_OPSET,
+                opset=opset,
                 output_dir=onnx_path,
                 output_names=output_names,
             )
