@@ -362,7 +362,7 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
                 f"If you wish to provide a custom dataset, please use the `OVQuantizer` instead."
             )
         if self.dataset is not None and isinstance(self.dataset, str):
-            llm_datasets = ["wikitext2", "c4", "c4-new"]
+            llm_datasets = ["wikitext2", "c4", "c4-new", "auto"]
             stable_diffusion_datasets = [
                 "conceptual_captions",
                 "laion/220k-GPT4Vision-captions-from-LIVIS",
