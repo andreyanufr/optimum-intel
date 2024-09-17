@@ -691,13 +691,50 @@ class OVQuantizer(OptimumQuantizer):
         nsamples = quantization_config.num_samples if quantization_config.num_samples else 128
         config_dataset = quantization_config.dataset
         if isinstance(config_dataset, str):
-            calibration_dataset = get_dataset(config_dataset, tokenizer, seqlen=32, nsamples=nsamples)
+            if config_dataset == 'auto':
+                calibration_dataset = self._prepare_auto_dataset(quantization_config, tokenizer)
+            else:
+                calibration_dataset = get_dataset(config_dataset, tokenizer, seqlen=32, nsamples=nsamples)
         elif isinstance(config_dataset, list) and all(isinstance(it, str) for it in config_dataset):
             calibration_dataset = [tokenizer(text, return_tensors="pt") for text in config_dataset[:nsamples]]
         else:
             raise ValueError("Please provide dataset as one of the accepted dataset labels or as a list of strings.")
         calibration_dataset = prepare_dataset(calibration_dataset)
         calibration_dataset = nncf.Dataset(calibration_dataset, lambda x: self.model.prepare_inputs(**x))
+
+        return calibration_dataset
+
+    def _prepare_auto_dataset(
+        self, quantization_config: OVWeightQuantizationConfig, tokenizer: Any, seqlen: int = 32,
+        nsamples: int = 128
+    ) -> nncf.Dataset:
+        collected_inputs = []
+        vocab_size_names = ['padded_vocab_size', 'vocab_size']
+        vocab_size = 12000
+        for vocab_size_name in vocab_size_names:
+            if hasattr(self.model.config, vocab_size_name):
+                vocab_size = getattr(self.model.config, vocab_size_name)
+                break
+        step = max(1, vocab_size // nsamples)
+
+        i = 0
+        n_trial = 3 * nsamples
+        while n_trial > 0 and len(collected_inputs) < nsamples:
+            n_trial -= 1
+            input_ids = torch.tensor([[i % vocab_size]])
+            outputs_prep = self.model.generate(input_ids, do_sample=False, max_length=seqlen // 2)
+            outputs_post = self.model.generate(outputs_prep, do_sample=True, max_length=seqlen+seqlen // 2)
+            gen_text = tokenizer.batch_decode(outputs_post[:, outputs_prep.shape[1]:], skip_special_tokens=True)
+
+            n_uniqs = len(set(gen_text[0]))
+            if n_uniqs <= 5: # avoid simple sentences
+                i += 1
+                continue
+
+            i += step
+            collected_inputs.append(gen_text[0])
+
+        calibration_dataset = nncf.Dataset(collected_inputs)
 
         return calibration_dataset
 
