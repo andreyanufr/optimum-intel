@@ -642,6 +642,11 @@ _DEFAULT_IGNORED_SCOPE_CONFIGS = {
             "patterns": [".*router.*"],
         },
     },
+    "Qwen/Qwen3.6-35B-A3B": {
+        "lm_model": {
+            "patterns": [".*in_proj_b.*", ".*in_proj_b.*", ".*shared_expert_gate.*"],
+        },
+    },
 }
 
 
