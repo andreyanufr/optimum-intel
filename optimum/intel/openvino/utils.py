@@ -194,7 +194,13 @@ PREDEFINED_VISUAL_LM_DATASETS = {
         "split": "test",
         "inputs": {"image_url": "image_url", "instruction": "instruction"},
         "streaming": True,
-    }
+    },
+    "python": {
+        "id": "jtatman/python-code-dataset-500k",
+        "split": "train",
+        "inputs": {"image_url": "image_url", "instruction": "instruction"},
+        "streaming": True,
+    },
 }
 
 PREDEFINED_SPEECH_TO_TEXT_DATASETS = {
