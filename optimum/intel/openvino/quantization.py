@@ -840,7 +840,7 @@ class OVCalibrationDatasetBuilder:
                     break
 
                 instruction = item[dataset_metadata["inputs"]["instruction"]]
-                image_url = item[dataset_metadata["inputs"]["image_url"]] if dataset_metadata["inputs"]["image_url"] in item else "https://textvision-data-quality.s3.us-west-1.amazonaws.com/stvqa-images/2357925.jpg"
+                image_url = item[dataset_metadata["inputs"]["image_url"]] if dataset_metadata["inputs"]["image_url"] in item else "https://c5.staticflickr.com/4/3557/3300607381_04fbc1bbc7_o.jpg"
                 image = Image.open(requests.get(image_url, stream=True).raw).convert("RGB")
                 if max_image_size is not None:
                     # To avoid large images, resize them keeping the aspect ratio
