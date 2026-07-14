@@ -847,7 +847,6 @@ class OVCalibrationDatasetBuilder:
                     break
 
                 instruction = item[dataset_metadata["inputs"]["instruction"]]
-                image = Image.open(requests.get(image_url, stream=True).raw).convert("RGB")
                 if "image_url" in dataset_metadata["inputs"]:
                     image_url = item[dataset_metadata["inputs"]["image_url"]] if dataset_metadata["inputs"]["image_url"] in item else "https://c5.staticflickr.com/4/3557/3300607381_04fbc1bbc7_o.jpg"
                     image = Image.open(requests.get(image_url, stream=True).raw).convert("RGB")
