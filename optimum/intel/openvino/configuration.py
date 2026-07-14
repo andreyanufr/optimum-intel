@@ -162,7 +162,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 128,
         "ratio": 1.0,
-        "dataset": "contextual",
+        "dataset": "textvqa",
         "quant_method": OVQuantizationMethod.AWQ,
     },
     "Qwen/Qwen3-VL-8B-Instruct": {
@@ -333,7 +333,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
                 "bits": 4,
                 "sym": False,
                 "group_size": 64,
-                "dataset": "contextual",
+                "dataset": "textvqa",
                 "quant_method": OVQuantizationMethod.AWQ,
                 "scale_estimation": True,
                 "ignored_scope": {
@@ -445,7 +445,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 64,
         "ratio": 1.0,
-        "dataset": "contextual",
+        "dataset": "textvqa",
         "scale_estimation": True,
     },
     "google/gemma-4-26B-A4B-it": {
@@ -467,7 +467,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "bits": 4,
         "sym": False,
         "group_size": 64,
-        "dataset": "contextual",
+        "dataset": "textvqa",
         "quant_method": OVQuantizationMethod.AWQ,
         "scale_estimation": True,
     },
@@ -644,7 +644,7 @@ _DEFAULT_IGNORED_SCOPE_CONFIGS = {
     },
     "Qwen/Qwen3.6-35B-A3B": {
         "lm_model": {
-            "patterns": [".*in_proj_a.*", ".*in_proj_b.*", ".*shared_expert_gate.*"],
+            "patterns": [".*in_proj_a.*", ".*in_proj_b.*", ".*shared_expert_gate.*", ".*shared_expert.*", ".*gate.*"],
         },
     },
 }
@@ -688,7 +688,11 @@ def get_default_quantization_config(
     if weight_format is None and quant_mode is None:
         raise ValueError("Either `weight_format` or `quant_mode` must be provided.")
 
-    if weight_format == "int4":
+    if weight_format == "int3":
+        default_configs_dict = copy.deepcopy(_DEFAULT_4BIT_WQ_CONFIGS)
+        for k, v in default_configs_dict.items():
+            v["bits"] = 3
+    elif weight_format == "int4":
         default_configs_dict = _DEFAULT_4BIT_WQ_CONFIGS
     elif weight_format == "int8":
         default_configs_dict = _DEFAULT_8BIT_WQ_CONFIGS
@@ -928,7 +932,7 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
                 ['auto', 'wikitext2','c4','c4-new']. With 'auto' the dataset will be collected from model's generations.
             - For diffusion models the dataset must be one of ['conceptual_captions',
                 'laion/220k-GPT4Vision-captions-from-LIVIS', 'laion/filtered-wit'].
-            - For visual language models the dataset must be set to 'contextual'.
+            - For visual language models the dataset must be set to 'textvqa' ('contextual' is deprecated).
             Alternatively, you can provide data objects via `calibration_dataset` argument of `OVQuantizer.quantize()`
             method.
         ratio (`float`, defaults to 1.0):
@@ -1109,16 +1113,16 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
                 "quantization algorithm is selected and compression ratio is 1.0."
             )
 
-        if self.dtype in ["int4", "int8"]:
-            bits = 4 if self.dtype == "int4" else 8
+        if self.dtype in ["int3", "int4", "int8"]:
+            bits = 3 if self.dtype == "int3" else 4 if self.dtype == "int4" else 8
             if self.bits is not None and self.bits != bits:
                 logger.warning(
                     f"Overriding `bits` parameter to the value `bits`={bits} to match the given {self.dtype} `dtype`."
                 )
             self.bits = bits
 
-        if self.bits not in [4, 8]:
-            raise ValueError(f"Only support quantization to [4,8] bits but found {self.bits}")
+        if self.bits not in [3, 4, 8]:
+            raise ValueError(f"Only support quantization to [3,4,8] bits but found {self.bits}")
 
         if self.bits == 8 and self.dtype:
             if self.ratio != 1:
@@ -1168,10 +1172,10 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
 
         if self.dtype is None:
             self.dtype = "int4" if self.bits == 4 else "int8"
-        if self.dtype not in ["int4", "int8", "mxfp4", "nf4", "cb4"]:
+        if self.dtype not in ["int3", "int4", "int8", "mxfp4", "nf4", "cb4"]:
             raise ValueError(
                 "Weights quantization data type must be one of the following: "
-                f"['int4', 'int8', 'mxfp4', 'nf4', 'cb4'], but found: {self.dtype}."
+                f"['int3', 'int4', 'int8', 'mxfp4', 'nf4', 'cb4'], but found: {self.dtype}."
             )
         if self.dtype in ["mxfp4", "nf4", "cb4"]:
             if self.bits != 4:

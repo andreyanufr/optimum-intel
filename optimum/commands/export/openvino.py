@@ -67,7 +67,7 @@ def parse_args_openvino(parser: "ArgumentParser"):
     optional_group.add_argument(
         "--weight-format",
         type=str,
-        choices=["fp32", "fp16", "int8", "int4", "mxfp4", "nf4", "cb4"],
+        choices=["fp32", "fp16", "int8", "int4", "mxfp4", "nf4", "cb4", "int3"],
         default=None,
         help=(
             "The weight format of the exported model. Option 'cb4' represents a codebook with 16 fixed fp8 values in E4M3 format."
@@ -179,7 +179,7 @@ def parse_args_openvino(parser: "ArgumentParser"):
             "dataset will be collected from model's generations. "
             "For diffusion models it should be on of ['conceptual_captions',"
             "'laion/220k-GPT4Vision-captions-from-LIVIS','laion/filtered-wit']. "
-            "For visual language models the dataset must be set to 'contextual'. "
+            "For visual language models the dataset must be set to 'textvqa' ('contextual' is deprecated). "
             "Note: if none of the data-aware compression algorithms are selected and ratio parameter is omitted or "
             "equals 1.0, the dataset argument will not have an effect on the resulting model."
             "Note: for text generation task, datasets with English texts such as 'wikitext2','gsm8k','c4' or 'c4-new' usually "
