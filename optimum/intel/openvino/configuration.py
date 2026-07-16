@@ -644,7 +644,7 @@ _DEFAULT_IGNORED_SCOPE_CONFIGS = {
     },
     "Qwen/Qwen3.6-35B-A3B": {
         "lm_model": {
-            "patterns": [".*in_proj_a.*", ".*in_proj_b.*", ".*shared_expert_gate.*", ".*shared_expert.*", ".*gate.*"],
+            "patterns": [".*in_proj_a.*", ".*in_proj_b.*", ".*shared_expert_gate.*", ".*shared_expert.*", ".*gate.*", ".*self_attn.*", ".*linear_attn.*"],
         },
     },
 }
