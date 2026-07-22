@@ -501,6 +501,12 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 128,
         "group_size_fallback": "adjust",
     },
+    "Qwen/Qwen3-Embedding-0.6B": {
+        "bits": 4,
+        "sym": False,
+        "group_size": 32,
+        "ratio": 0.9,
+    }
 }
 
 _DEFAULT_8BIT_WQ_CONFIGS = {
@@ -644,7 +650,7 @@ _DEFAULT_IGNORED_SCOPE_CONFIGS = {
     },
     "Qwen/Qwen3.6-35B-A3B": {
         "lm_model": {
-            "patterns": [".*in_proj_a.*", ".*in_proj_b.*", ".*shared_expert_gate.*", ".*shared_expert.*", ".*gate.*"],
+            "patterns": [".*in_proj_a.*", ".*in_proj_b.*", ".*shared_expert_gate.*", ".*shared_expert.*", ".*gate.*", ".*self_attn.*", ".*linear_attn.*"],
         },
     },
 }
