@@ -50,7 +50,6 @@ logger = logging.getLogger(__name__)
 class OVQuantizationMethod(str, Enum):
     DEFAULT = "default"
     HYBRID = "hybrid"
-    AWQ = "awq"
 
 
 # Default configs for 4-bit weight quantization
@@ -71,7 +70,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": True,
         "group_size": 128,
         "ratio": 0.8,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "meta-llama/Llama-2-7b-hf": {"bits": 4, "sym": True, "group_size": 128, "ratio": 0.6},
     "meta-llama/Llama-2-7b-chat-hf": {
@@ -79,7 +78,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": True,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "meta-llama/Llama-2-13b-chat-hf": {"bits": 4, "sym": True, "group_size": 64, "ratio": 0.8},
     "stabilityai/stablelm-3b-4e1t": {
@@ -87,7 +86,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": True,
         "group_size": 64,
         "ratio": 0.8,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "stabilityai/stablelm-zephyr-3b": {
         "bits": 4,
@@ -107,7 +106,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 128,
         "ratio": 0.9,
         "dataset": "wikitext2",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
         "scale_estimation": True,
     },
     "Qwen/Qwen2.5-7B-Instruct": {
@@ -115,7 +114,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "Qwen/Qwen2.5-Coder-3B-Instruct": {
         "bits": 4,
@@ -132,7 +131,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 64,
         "ratio": 1.0,
         "dataset": "wikitext2",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
         "scale_estimation": True,
     },
     "Qwen/Qwen3-4B": {
@@ -140,7 +139,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": True,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "Qwen/Qwen3-8B": {
         "bits": 4,
@@ -155,7 +154,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "Qwen/Qwen3-VL-4B-Instruct": {
         "bits": 4,
@@ -163,14 +162,14 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 128,
         "ratio": 1.0,
         "dataset": "textvqa",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "Qwen/Qwen3-VL-8B-Instruct": {
         "bits": 4,
         "sym": False,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "openlm-research/open_llama_3b": {"bits": 4, "sym": False, "group_size": 64, "all_layers": True},
     "openlm-research/open_llama_3b_v2": {
@@ -179,7 +178,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 64,
         "ratio": 1.0,
         "dataset": "wikitext2",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "tiiuae/falcon-7b-instruct": {"bits": 4, "sym": False, "group_size": 64},
     "psmathur/orca_mini_3b": {
@@ -194,7 +193,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 64,
         "ratio": 0.8,
         "dataset": "wikitext2",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "mistralai/Mixtral-8x7B-v0.1": {"bits": 4, "sym": True, "group_size": 128, "ratio": 0.8},
     "facebook/opt-2.7b": {"bits": 4, "sym": True, "group_size": 128, "ratio": 0.7},
@@ -220,7 +219,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "lmsys/longchat-7b-16k": {
         "bits": 4,
@@ -228,7 +227,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 128,
         "ratio": 1.0,
         "dataset": "wikitext2",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
         "scale_estimation": True,
     },
     "bigcode/starcoder2-3b": {"bits": 4, "sym": False, "group_size": 128, "ratio": 0.9},
@@ -238,7 +237,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 64,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "microsoft/phi-2": {
         "bits": 4,
@@ -246,7 +245,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "group_size": 64,
         "ratio": 1.0,
         "dataset": "wikitext2",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
         "scale_estimation": True,
     },
     "stabilityai/stablelm-tuned-alpha-7b": {
@@ -262,21 +261,21 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 64,
         "ratio": 0.8,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "meta-llama/Llama-3.2-1B-Instruct": {
         "bits": 4,
         "sym": False,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "meta-llama/Meta-Llama-3.1-8B": {
         "bits": 4,
         "sym": False,
         "group_size": 64,
         "ratio": 0.8,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "microsoft/Phi-3-mini-4k-instruct": {
         "bits": 4,
@@ -291,14 +290,14 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 64,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "microsoft/Phi-4-mini-instruct": {
         "bits": 4,
         "sym": False,
         "group_size": 64,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "microsoft/Phi-4-reasoning": {
         "bits": 4,
@@ -311,21 +310,21 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 32,
         "ratio": 0.7,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B": {
         "bits": 4,
         "sym": False,
         "group_size": 128,
         "ratio": 1.0,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "deepseek-ai/DeepSeek-R1-Distill-Llama-8B": {
         "bits": 4,
         "sym": False,
         "group_size": 64,
         "ratio": 0.8,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "microsoft/Phi-4-multimodal-instruct": {
         "quantization_configs": {
@@ -334,7 +333,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
                 "sym": False,
                 "group_size": 64,
                 "dataset": "textvqa",
-                "quant_method": OVQuantizationMethod.AWQ,
+                "awq": True,
                 "scale_estimation": True,
                 "ignored_scope": {
                     "patterns": [
@@ -382,7 +381,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 128,
         "dataset": "gsm8k",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
     },
     "inceptionai/jais-13b": {
         "bits": 4,
@@ -452,7 +451,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "bits": 4,
         "sym": False,
         "group_size": 64,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
         "group_size_fallback": "adjust",
         "dq_group_size": 64,
     },
@@ -460,7 +459,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "bits": 4,
         "sym": False,
         "group_size": 64,
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
         "group_size_fallback": "adjust",
     },
     "google/gemma-4-E4B-it": {
@@ -468,7 +467,7 @@ _DEFAULT_4BIT_WQ_CONFIGS = {
         "sym": False,
         "group_size": 64,
         "dataset": "textvqa",
-        "quant_method": OVQuantizationMethod.AWQ,
+        "awq": True,
         "scale_estimation": True,
     },
     "Qwen/Qwen3.5-35B-A3B": {
@@ -819,7 +818,7 @@ class OVQuantizationConfigBase(QuantizationConfigMixin):
             processor (`str`, *optional*):
                 A transformers processor used to process the dataset inputs.
         """
-        self.num_samples = num_samples
+        self.num_samples = num_samples or 128
 
         # Handle dataset_kwargs from deserialization
         self._dataset_kwargs = kwargs.pop("_dataset_kwargs", {})
@@ -1024,6 +1023,8 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
         num_samples: Optional[int] = None,
         quant_method: Union[str, OVQuantizationMethod] = OVQuantizationMethod.DEFAULT,
         scale_estimation: bool = None,
+        awq: bool = None,
+        awq_data_free: bool = None,
         dtype: Optional[str] = None,
         gptq: bool = None,
         processor: Optional[str] = None,
@@ -1057,6 +1058,8 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
         self.sensitivity_metric = sensitivity_metric
         self.quant_method = OVQuantizationMethod(quant_method) if isinstance(quant_method, str) else quant_method
         self.scale_estimation = scale_estimation
+        self.awq = awq
+        self.awq_data_free = awq_data_free
         self.gptq = gptq
         self.lora_correction = lora_correction
         self.backup_precision = backup_precision
@@ -1104,8 +1107,9 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
                 )
 
         if self.dataset is not None and not (
-            self.quant_method in [OVQuantizationMethod.AWQ, OVQuantizationMethod.HYBRID]
+            self.quant_method in [OVQuantizationMethod.HYBRID]
             or self.scale_estimation
+            or self.awq
             or self.gptq
             or self.lora_correction
             or (self.ratio < 1.0 and self.sensitivity_metric != nncf.SensitivityMetric.WEIGHT_QUANTIZATION_ERROR)
@@ -1139,9 +1143,9 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
                 raise ValueError("The `all_layers` parameter is not supported for 8-bit quantization")
             if self.sensitivity_metric:
                 raise ValueError("The `sensitivity_metric` parameter is not supported for 8-bit quantization")
-            if self.quant_method == OVQuantizationMethod.AWQ:
+            if self.awq:
                 raise ValueError(
-                    "The AWQ algorithm is not supported for 8-bit quantization and got `quant_method='awq'`, please update accordingly"
+                    "The AWQ algorithm is not supported for 8-bit quantization and got `awq=True`, please update accordingly"
                 )
             if self.scale_estimation:
                 raise ValueError(
@@ -1185,7 +1189,7 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
                     f"When applying weight compression with '{self.dtype}' data type, the `bits` parameter must be set to 4, but found {self.bits}"
                 )
             if self.dtype == "mxfp4":
-                if self.quant_method == OVQuantizationMethod.AWQ:
+                if self.awq:
                     raise ValueError("The AWQ algorithm is not supported for 'mxpf4' data type")
                 if self.scale_estimation:
                     raise ValueError("The Scale Estimation algorithm is not supported for 'mxpf4' data type")
@@ -1203,6 +1207,9 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
                 f"but found: {self.group_size_fallback}"
             )
 
+        if self.awq and self.awq_data_free:
+            raise ValueError("The `awq` and `awq_data_free` parameters can't be set to True simultaneously")
+
     def to_nncf_dict(self) -> Dict[str, Any]:
         """
         Returns a dictionary with the variables that are ready to use for nncf.quantize() call.
@@ -1217,19 +1224,27 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
             mode = "cb4_f8e4m3"
         mode = nncf.CompressWeightsMode(mode)
 
-        awq = True if self.quant_method == OVQuantizationMethod.AWQ else None
         sensitivity_metric = nncf.SensitivityMetric(self.sensitivity_metric) if self.sensitivity_metric else None
         backup_mode = nncf.BackupMode(self.backup_precision) if self.backup_precision else None
         kwargs = self.kwargs.copy()
-        if self.statistics_path or self.group_size_fallback:
-            advanced_parameters = kwargs.get("advanced_parameters", nncf.AdvancedCompressionParameters())
-            if self.statistics_path:
-                advanced_parameters = dataclasses.replace(advanced_parameters, statistics_path=self.statistics_path)
-            if self.group_size_fallback:
-                advanced_parameters = dataclasses.replace(
-                    advanced_parameters, group_size_fallback_mode=nncf.GroupSizeFallbackMode(self.group_size_fallback)
-                )
-            kwargs["advanced_parameters"] = advanced_parameters
+
+        # Handle advanced_parameters for nncf.compress_weights() call
+        advanced_parameters = kwargs.get("advanced_parameters", nncf.AdvancedCompressionParameters())
+        if self.statistics_path:
+            advanced_parameters = dataclasses.replace(advanced_parameters, statistics_path=self.statistics_path)
+        if self.group_size_fallback:
+            advanced_parameters = dataclasses.replace(
+                advanced_parameters, group_size_fallback_mode=nncf.GroupSizeFallbackMode(self.group_size_fallback)
+            )
+        if self.scale_estimation:
+            se_advanced_parameters = nncf.AdvancedScaleEstimationParameters(subset_size=self.num_samples)
+            advanced_parameters = dataclasses.replace(advanced_parameters, scale_estimation_params=se_advanced_parameters)
+        if self.awq_data_free:
+            awq_advanced_parameters = nncf.AdvancedAWQParameters(prefer_data_aware_scaling=False)
+            advanced_parameters = dataclasses.replace(advanced_parameters, awq_params=awq_advanced_parameters)
+
+        kwargs["advanced_parameters"] = advanced_parameters
+
         result = {
             "mode": mode,
             "ratio": self.ratio,
@@ -1237,8 +1252,8 @@ class OVWeightQuantizationConfig(OVQuantizationConfigBase):
             "ignored_scope": self.get_ignored_scope_instance(),
             "all_layers": self.all_layers,
             "sensitivity_metric": sensitivity_metric,
-            "subset_size": self.num_samples or 128,
-            "awq": awq,
+            "subset_size": self.num_samples,
+            "awq": self.awq or self.awq_data_free,
             "scale_estimation": self.scale_estimation,
             "gptq": self.gptq,
             "lora_correction": self.lora_correction,

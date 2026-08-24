@@ -208,6 +208,14 @@ def parse_args_openvino(parser: "ArgumentParser"):
         ),
     )
     optional_group.add_argument(
+        "--awq-data-free",
+        action="store_true",
+        default=None,
+        help=(
+            "Whether to apply data-free AWQ algorithm. AWQ improves generation quality of INT4-compressed LLMs."
+        ),
+    )
+    optional_group.add_argument(
         "--scale-estimation",
         action="store_true",
         default=None,
@@ -511,8 +519,10 @@ def prepare_wc_config(args, default_configs):
         "all_layers": None if is_int8 else args.all_layers,
         "dataset": args.dataset,
         "num_samples": args.num_samples,
-        "quant_method": "awq" if args.awq else "default",
+        "quant_method": "default",
         "sensitivity_metric": args.sensitivity_metric,
+        "awq": args.awq,
+        "awq_data_free": args.awq_data_free,
         "scale_estimation": args.scale_estimation,
         "gptq": args.gptq,
         "lora_correction": args.lora_correction,

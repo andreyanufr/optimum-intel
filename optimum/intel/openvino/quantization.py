@@ -721,6 +721,32 @@ class OVCalibrationDatasetBuilder:
                         dataset.append({"input_ids": inp, "attention_mask": attention_mask})
                     return dataset
 
+                def get_imatrix_calibration(tokenizer: Any, seqlen: int, nsamples: int, split: str = "train"):
+                    from datasets import load_dataset
+
+                    if split == "train":
+                        data = load_dataset("eaddario/imatrix-calibration", split="train")
+                    elif split == "validation":
+                        data = load_dataset("eaddario/imatrix-calibration", split="test")
+
+                    dataset = []
+
+                    for item in data:
+                        if len(dataset) >= nsamples:
+                            break
+                        text = item["content"]
+                        if len(text) > 10 * seqlen:
+                            text = text[:10 * seqlen]
+                        enc = tokenizer(text, return_tensors="pt")
+                        if enc.input_ids.shape[1] > seqlen:
+                            i = random.randint(0, enc.input_ids.shape[1] - seqlen - 1)
+                            j = i + seqlen
+                            inp = enc.input_ids[:, i:j]
+                            attention_mask = torch.ones_like(inp)
+                            dataset.append({"input_ids": inp, "attention_mask": attention_mask})
+
+                    return dataset
+
                 def get_c4(tokenizer: Any, seqlen: int, nsamples: int, split: str = "train"):
                     # Copied from optimum.gptq.data.get_c4 with an updated break condition
                     # TODO: remove once https://github.com/huggingface/optimum/pull/2398 is merged
@@ -786,7 +812,7 @@ class OVCalibrationDatasetBuilder:
                 random.seed(self.seed - 42)
                 np.random.seed(self.seed - 42)
                 torch.random.manual_seed(self.seed - 42)
-                get_dataset_map = {"wikitext2": get_wikitext2, "c4": get_c4, "c4-new": get_c4_new}
+                get_dataset_map = {"wikitext2": get_wikitext2, "c4": get_c4, "c4-new": get_c4_new, "imatrix_calibration": get_imatrix_calibration}
                 if config.dataset not in get_dataset_map:
                     raise ValueError(f"Expected a value in {list(get_dataset_map.keys())} but found {config.dataset}")
                 get_dataset_fn = get_dataset_map[config.dataset]
